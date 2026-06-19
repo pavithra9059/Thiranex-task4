@@ -1,0 +1,426 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitTrack Pro — Show up. Watch it climb.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12141A; --ink-soft:#1C1F27; --ink-line:rgba(255,255,255,0.1);
+    --paper:#FAFAF6; --paper-soft:#EFEFE6; --paper-line:rgba(18,20,26,0.1);
+    --lime:#C6FF3D; --lime-deep:#8FCB00;
+    --coral:#FF6B4A;
+    --on-dark:#F5F6F0; --on-dark-mute:#9A9CA0;
+    --on-light:#14161A; --on-light-mute:#5C5F66;
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box;}
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--paper); font-family:'Inter',sans-serif; color:var(--on-light-mute); overflow-x:hidden; }
+  .display{ font-family:'Bebas Neue', sans-serif; text-transform:uppercase; letter-spacing:0.01em; line-height:0.95; margin:0; }
+  .mono{ font-family:'Space Mono',monospace; }
+  p{ margin:0; line-height:1.6; }
+  a{ text-decoration:none; color:inherit; }
+  button{ font-family:inherit; cursor:pointer; border:none; background:none; }
+  :focus-visible{ outline:3px solid var(--lime); outline-offset:2px; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+  section{ position:relative; }
+  .pad{ padding:120px 0; }
+  .on-dark{ background:var(--ink); color:var(--on-dark-mute); }
+  .on-dark .display{ color:var(--on-dark); }
+  .on-light .display{ color:var(--on-light); }
+  .eyebrow{ font-size:12.5px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; }
+  .on-dark .eyebrow{ color:var(--lime); }
+  .on-light .eyebrow{ color:var(--lime-deep); }
+
+  .reveal{ opacity:0; transform:translateY(26px); transition:opacity .8s var(--ease), transform .8s var(--ease); }
+  .reveal.is-visible{ opacity:1; transform:translateY(0); }
+
+  /* ===== BUTTONS ===== */
+  .btn{ display:inline-flex; align-items:center; gap:9px; padding:15px 28px; border-radius:999px; font-weight:700; font-size:14.5px; letter-spacing:0.02em; transition:transform .3s var(--ease), box-shadow .3s var(--ease); }
+  .btn--lime{ background:var(--lime); color:var(--ink); box-shadow:0 0 0 0 rgba(198,255,61,0.6); }
+  .btn--lime:hover{ transform:translateY(-2px); box-shadow:0 16px 30px -10px rgba(198,255,61,0.5); }
+  .btn--outline-dark{ border:1.5px solid rgba(255,255,255,0.35); color:var(--on-dark); }
+  .btn--outline-dark:hover{ background:rgba(255,255,255,0.08); transform:translateY(-2px); }
+  .btn--outline-light{ border:1.5px solid rgba(18,20,26,0.25); color:var(--on-light); }
+  .btn--outline-light:hover{ background:rgba(18,20,26,0.05); transform:translateY(-2px); }
+  .btn--coral{ background:var(--coral); color:#fff; }
+  .btn--coral:hover{ transform:translateY(-2px); box-shadow:0 16px 30px -10px rgba(255,107,74,0.55); }
+
+  /* ===== NAV ===== */
+  .nav{ position:fixed; top:0; left:0; right:0; z-index:100; padding:22px 0; transition:padding .35s var(--ease), background .35s var(--ease); }
+  .nav.is-scrolled{ padding:13px 0; background:rgba(18,20,26,0.85); backdrop-filter:blur(14px); border-bottom:1px solid var(--ink-line); }
+  .nav__inner{ max-width:1180px; margin:0 auto; padding:0 32px; display:flex; align-items:center; justify-content:space-between; }
+  .logo{ display:flex; align-items:center; gap:9px; font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--on-dark); letter-spacing:0.02em; }
+  .logo .dot{ width:9px; height:9px; border-radius:50%; background:var(--lime); }
+  .nav__links{ display:flex; gap:32px; font-size:14px; color:var(--on-dark-mute); font-weight:500; }
+  .nav__links a:hover{ color:var(--on-dark); }
+  .nav__burger{ display:none; width:38px; height:38px; border-radius:9px; background:rgba(255,255,255,0.08); align-items:center; justify-content:center; }
+  .nav__burger span{ width:16px; height:1.5px; background:#fff; position:relative; }
+  .nav__burger span::before,.nav__burger span::after{ content:""; position:absolute; width:16px; height:1.5px; background:#fff; }
+  .nav__burger span::before{ top:-5px; } .nav__burger span::after{ top:5px; }
+  .drawer{ position:fixed; inset:0; z-index:99; background:rgba(18,20,26,0.98); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; opacity:0; visibility:hidden; transition:opacity .3s; }
+  .drawer.is-open{ opacity:1; visibility:visible; }
+  .drawer a{ font-family:'Bebas Neue',sans-serif; font-size:30px; color:var(--on-dark); }
+
+  /* ===== HERO ===== */
+  .hero{ padding:170px 0 110px; overflow:hidden; }
+  .hero__pulse{ position:absolute; left:0; top:0; width:100%; height:100%; opacity:0.18; z-index:0; }
+  .hero__grid{ position:relative; z-index:1; display:grid; grid-template-columns:1.05fr 0.95fr; gap:50px; align-items:center; }
+  .hero h1{ font-size:clamp(46px,7vw,84px); margin-top:16px; }
+  .hero h1 .lime{ color:var(--lime); }
+  .hero__sub{ margin-top:22px; max-width:440px; font-size:17px; color:var(--on-dark-mute); }
+  .hero__ctas{ margin-top:34px; display:flex; gap:16px; flex-wrap:wrap; }
+  .hero__proof{ margin-top:40px; display:flex; align-items:center; gap:12px; font-size:13px; color:#71737A; }
+  .hero__proof .stars{ color:var(--lime); }
+
+  /* phone mockup */
+  .phone-stage{ position:relative; height:480px; }
+  .phone{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:240px; height:460px; background:#0B0C10; border-radius:34px; border:1px solid rgba(255,255,255,0.12);
+    box-shadow:0 50px 100px -30px rgba(0,0,0,0.7), 0 0 80px -20px rgba(198,255,61,0.25);
+    padding:10px; z-index:2;
+  }
+  .phone__screen{ width:100%; height:100%; background:linear-gradient(180deg,#191C24,#12141A); border-radius:24px; padding:18px 16px; overflow:hidden; }
+  .phone__top{ display:flex; justify-content:space-between; font-size:10px; color:#777; font-family:'Space Mono',monospace; }
+  .phone__title{ font-family:'Bebas Neue',sans-serif; font-size:18px; color:#fff; margin-top:16px; }
+  .phone__chart{ margin-top:14px; }
+  .ex-row{ display:flex; align-items:center; gap:9px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
+  .ex-row .check{ width:18px; height:18px; border-radius:50%; background:var(--lime); flex:none; display:flex; align-items:center; justify-content:center; }
+  .ex-row .check svg{ width:9px; height:9px; }
+  .ex-row span{ font-size:11.5px; color:#cfd0d4; }
+  .phone__btn{ margin-top:16px; background:var(--lime); color:#12141A; text-align:center; padding:11px; border-radius:13px; font-size:12px; font-weight:700; }
+
+  .chip{ position:absolute; padding:12px 15px; border-radius:14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); backdrop-filter:blur(14px); box-shadow:0 18px 36px -16px rgba(0,0,0,0.5); animation:floaty 6s ease-in-out infinite; z-index:3; }
+  .chip .l{ font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:#8A8C92; }
+  .chip .v{ font-size:17px; color:#fff; margin-top:3px; }
+  .chip--1{ left:0; top:8%; animation-delay:0s; }
+  .chip--2{ right:0; bottom:14%; animation-delay:1.1s; }
+  .chip .v.lime{ color:var(--lime); }
+  @keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+
+  /* ===== STATS ===== */
+  .stats{ padding:80px 0; }
+  .stats__grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:30px; text-align:center; }
+  .stat__num{ font-family:'Space Mono',monospace; font-weight:700; font-size:clamp(26px,3.4vw,38px); color:var(--on-light); }
+  .stat__label{ font-size:13px; margin-top:6px; }
+
+  /* ===== FEATURES ===== */
+  .section-head{ max-width:560px; }
+  .section-head h2{ font-size:clamp(34px,4.2vw,52px); margin-top:10px; }
+  .section-head p{ margin-top:14px; font-size:16px; }
+  .features__grid{ margin-top:56px; display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .feature-card{ background:#fff; border:1px solid var(--paper-line); border-radius:20px; padding:28px 24px; transition:transform .4s var(--ease), box-shadow .4s var(--ease); }
+  .feature-card:hover{ transform:translateY(-6px); box-shadow:0 24px 50px -24px rgba(18,20,26,0.25); }
+  .feature-card .icon{ width:44px; height:44px; border-radius:13px; display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+  .feature-card h3{ font-family:'Inter',sans-serif; font-size:17px; font-weight:700; color:var(--on-light); margin:0; }
+  .feature-card p{ font-size:14px; margin-top:9px; }
+
+  /* ===== HOW IT WORKS (dark) ===== */
+  .steps__line{ position:relative; height:240px; margin-top:30px; }
+  .steps__line svg{ position:absolute; width:100%; height:100%; opacity:0.55; }
+  .step{ position:absolute; transform:translate(-50%,-50%); width:230px; text-align:center; }
+  .step .num{ width:48px; height:48px; border-radius:50%; background:var(--ink-soft); border:1px solid var(--ink-line); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-family:'Space Mono',monospace; color:var(--lime); }
+  .step h4{ font-family:'Bebas Neue',sans-serif; font-size:19px; color:var(--on-dark); margin:0; }
+  .step p{ font-size:13.5px; margin-top:8px; }
+  .step-1{ left:10%; top:75%; } .step-2{ left:50%; top:18%; } .step-3{ left:90%; top:60%; }
+
+  /* ===== TRAINER SHOWCASE ===== */
+  .showcase{ display:grid; grid-template-columns:0.9fr 1.1fr; gap:54px; align-items:center; }
+  .trainer-card{ background:#fff; border:1px solid var(--paper-line); border-radius:24px; padding:26px; box-shadow:0 30px 70px -30px rgba(18,20,26,0.18); }
+  .trainer-card__top{ display:flex; gap:14px; align-items:center; }
+  .trainer-avatar{ width:56px; height:56px; border-radius:16px; background:linear-gradient(135deg,var(--lime),var(--coral)); flex:none; }
+  .trainer-card__top strong{ color:var(--on-light); font-size:15.5px; }
+  .trainer-card__top span{ font-size:12.5px; display:block; margin-top:2px; }
+  .trainer-tags{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .trainer-tags span{ font-size:11.5px; padding:5px 10px; border-radius:30px; background:var(--paper-soft); color:var(--on-light-mute); }
+  .trainer-slot{ margin-top:18px; display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:var(--paper-soft); border-radius:14px; }
+  .trainer-slot span{ font-size:13px; color:var(--on-light); font-weight:600; }
+  .trainer-slot .btn{ padding:9px 16px; font-size:12.5px; }
+
+  .check-list{ margin-top:28px; display:flex; flex-direction:column; gap:18px; }
+  .check-item{ display:flex; gap:13px; }
+  .check-item .mark{ width:22px; height:22px; border-radius:50%; background:rgba(143,203,0,0.16); border:1px solid rgba(143,203,0,0.4); display:flex; align-items:center; justify-content:center; flex:none; margin-top:2px; }
+  .check-item .mark svg{ width:11px; height:11px; }
+  .check-item h4{ font-size:15px; color:var(--on-light); font-weight:700; margin:0; }
+  .check-item p{ font-size:13.5px; margin-top:4px; }
+
+  /* ===== TESTIMONIAL ===== */
+  .testimonial{ display:flex; justify-content:center; padding-top:0; }
+  .testimonial__card{ max-width:660px; text-align:center; background:var(--paper-soft); border-radius:24px; padding:50px 54px; }
+  .testimonial__quote{ font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--on-light); letter-spacing:0; text-transform:none; line-height:1.3; }
+  .testimonial__person{ margin-top:24px; font-size:13.5px; }
+  .testimonial__person strong{ color:var(--on-light); }
+
+  /* ===== CTA (dark) ===== */
+  .cta{ text-align:center; padding:130px 0; }
+  .cta h2{ font-size:clamp(40px,6vw,64px); }
+  .cta p{ margin:18px auto 0; max-width:460px; font-size:16px; }
+  .cta__actions{ margin-top:32px; display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+
+  /* ===== FOOTER ===== */
+  footer{ padding:70px 0 32px; border-top:1px solid var(--paper-line); background:var(--paper); }
+  .foot__grid{ display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:36px; }
+  .foot__brand p{ font-size:13.5px; margin-top:10px; max-width:220px; }
+  .foot__col h5{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.07em; color:#9A9CA0; margin:0 0 14px; }
+  .foot__col a{ display:block; font-size:13.5px; color:var(--on-light-mute); margin-bottom:10px; }
+  .foot__col a:hover{ color:var(--on-light); }
+  .foot__bottom{ margin-top:50px; padding-top:22px; border-top:1px solid var(--paper-line); display:flex; justify-content:space-between; font-size:12px; flex-wrap:wrap; gap:10px; }
+
+  @media (max-width:1100px){
+    .hero__grid{ grid-template-columns:1fr; }
+    .phone-stage{ margin-top:30px; height:420px; }
+    .features__grid{ grid-template-columns:repeat(2,1fr); }
+    .showcase{ grid-template-columns:1fr; }
+    .showcase__copy{ order:-1; }
+    .stats__grid{ grid-template-columns:repeat(2,1fr); gap:26px; }
+    .foot__grid{ grid-template-columns:1fr 1fr; gap:30px; }
+  }
+  @media (max-width:760px){
+    .wrap{ padding:0 22px; }
+    .nav__links{ display:none; } .nav__burger{ display:flex; }
+    .pad{ padding:80px 0; }
+    .hero{ padding:130px 0 70px; }
+    .features__grid{ grid-template-columns:1fr; }
+    .chip{ display:none; } .chip--1{ display:block; top:4%; }
+    .testimonial__card{ padding:36px 26px; }
+    .testimonial__quote{ font-size:20px; }
+    .steps__line{ height:auto; }
+    .steps__line svg{ display:none; }
+    .step{ position:relative; left:auto !important; top:auto !important; transform:none; width:100%; margin-bottom:30px; }
+    .foot__grid{ grid-template-columns:1fr; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .chip{ animation:none !important; }
+    .reveal{ transition:none; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="logo" href="#top"><span class="dot"></span>FitTrack Pro</a>
+    <div class="nav__links">
+      <a href="#features">Features</a>
+      <a href="#trainers">Trainers</a>
+      <a href="#how">How it works</a>
+    </div>
+    <a class="btn btn--lime" href="#" style="padding:10px 20px; font-size:13px;">Get the app</a>
+    <button class="nav__burger" id="burger" aria-label="Open menu"><span></span></button>
+  </div>
+</nav>
+<div class="drawer" id="drawer">
+  <a href="#features">Features</a>
+  <a href="#trainers">Trainers</a>
+  <a href="#how">How it works</a>
+  <a class="btn btn--lime" href="#">Get the app</a>
+</div>
+
+<section class="hero on-dark" id="top">
+  <div class="hero__pulse">
+    <svg viewBox="0 0 800 200" preserveAspectRatio="none" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,150 L20,150 L28,138 L36,162 L44,150 L60,150 L68,85 L76,195 L84,150 L100,150 L108,138 L116,162 L124,150 L140,150 L148,85 L156,195 L164,150 L184,150 C220,150 235,120 270,112 C310,103 330,80 365,78 C400,76 420,50 455,52 C490,54 505,30 540,28 C580,26 600,12 640,14 C680,16 700,8 740,10 L800,8" stroke="#C6FF3D" stroke-width="2" fill="none"/>
+    </svg>
+  </div>
+  <div class="wrap hero__grid">
+    <div>
+      <span class="eyebrow reveal">Your goal, tracked daily</span>
+      <h1 class="display reveal">SHOW UP.<br>WATCH IT <span class="lime">CLIMB.</span></h1>
+      <p class="hero__sub reveal">FitTrack Pro turns every workout, meal, and training session into one clear line of progress — built for first-timers, gym regulars, and the trainers coaching them.</p>
+      <div class="hero__ctas reveal">
+        <a class="btn btn--lime" href="#">Get the app — free to start</a>
+        <a class="btn btn--outline-dark" href="#how">See how it works</a>
+      </div>
+      <div class="hero__proof reveal">
+        <span class="stars">★★★★★</span>
+        <span>4.8 average rating · 2.4M workouts logged</span>
+      </div>
+    </div>
+
+    <div class="phone-stage reveal">
+      <div class="phone">
+        <div class="phone__screen">
+          <div class="phone__top"><span>9:41</span><span>●●●</span></div>
+          <div class="phone__title">TODAY'S WORKOUT</div>
+          <div class="ex-row"><div class="check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12141A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span>Squats — 4×10</span></div>
+          <div class="ex-row"><div class="check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12141A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span>Bench press — 3×8</span></div>
+          <div class="ex-row" style="opacity:0.4;"><div class="check" style="background:#3A3D45;"></div><span>Plank — 3×45s</span></div>
+          <div class="phone__chart">
+            <svg viewBox="0 0 200 60" width="100%" height="60">
+              <path d="M0,45 C30,40 40,30 60,28 C80,26 90,15 120,14 C150,13 160,5 200,4" stroke="#C6FF3D" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+          <div class="phone__btn">Log workout</div>
+        </div>
+      </div>
+      <div class="chip chip--1"><div class="l">Streak</div><div class="v lime">12 days</div></div>
+      <div class="chip chip--2"><div class="l">Goal progress</div><div class="v">68%</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="stats on-light wrap">
+  <div class="stats__grid">
+    <div class="reveal"><div class="stat__num" data-count-to="2.4" data-decimals="1" data-suffix="M">0M</div><div class="stat__label">Workouts logged</div></div>
+    <div class="reveal"><div class="stat__num" data-count-to="94" data-suffix="%">0%</div><div class="stat__label">Goals met within 90 days</div></div>
+    <div class="reveal"><div class="stat__num" data-count-to="1200" data-suffix="+">0+</div><div class="stat__label">Certified trainers</div></div>
+    <div class="reveal"><div class="stat__num" data-count-to="4.8" data-decimals="1" data-suffix="★">0★</div><div class="stat__label">Average rating</div></div>
+  </div>
+</section>
+
+<section class="pad on-light wrap" id="features">
+  <div class="section-head reveal">
+    <span class="eyebrow">What's inside</span>
+    <h2 class="display">EVERYTHING<br>BETWEEN GOAL & DONE.</h2>
+    <p>No separate apps for workouts, meals, and coaching — FitTrack Pro keeps the whole picture in one place.</p>
+  </div>
+  <div class="features__grid">
+    <div class="feature-card reveal">
+      <div class="icon" style="background:rgba(143,203,0,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 12h2l2-6 4 12 2-6h2" stroke="#8FCB00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h3>Workout tracking</h3>
+      <p>Log sets, reps, and duration in seconds — built for sweaty hands, not spreadsheets.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="icon" style="background:rgba(255,107,74,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#FF6B4A" stroke-width="1.8"/><path d="M12 8v4l3 2" stroke="#FF6B4A" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <h3>Goals & progress</h3>
+      <p>Set a real target — weight, strength, or consistency — and watch one chart track it honestly.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="icon" style="background:rgba(143,203,0,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="#8FCB00" stroke-width="1.8"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6" stroke="#8FCB00" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <h3>Book a trainer</h3>
+      <p>Find a certified coach, check real availability, and pay in-app — no DMs back and forth.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="icon" style="background:rgba(255,107,74,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 19V9M10 19V5M16 19v-7M22 19h-20" stroke="#FF6B4A" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <h3>Progress reports</h3>
+      <p>A weekly summary that's honest about plateaus, not just highlight reels.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="icon" style="background:rgba(143,203,0,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#8FCB00" stroke-width="1.8"/><path d="M3 9h18M8 4v5" stroke="#8FCB00" stroke-width="1.8"/></svg></div>
+      <h3>Meal plans</h3>
+      <p>Simple plans that match your goal, with room to swap meals you'd actually eat.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="icon" style="background:rgba(255,107,74,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M17 20h5v-1a4 4 0 00-4-4M9 20H4v-1a4 4 0 014-4M9 11a3 3 0 100-6 3 3 0 000 6zM17 11a3 3 0 100-6 3 3 0 000 6z" stroke="#FF6B4A" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+      <h3>Community challenges</h3>
+      <p>Join a weekly challenge with people aiming for the same thing you are.</p>
+    </div>
+  </div>
+</section>
+
+<section class="pad on-dark" id="how">
+  <div class="wrap">
+    <div class="section-head reveal" style="margin:0 auto; text-align:center;">
+      <span class="eyebrow">Getting started</span>
+      <h2 class="display">THREE STEPS.<br>ONE LINE GOING UP.</h2>
+    </div>
+    <div class="steps__line reveal">
+      <svg viewBox="0 0 1000 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M100,160 C300,160 300,40 500,40 C700,40 700,100 900,80" stroke="#C6FF3D" stroke-width="1.5" fill="none" stroke-dasharray="2 7"/>
+      </svg>
+      <div class="step step-1"><div class="num mono">01</div><h4>SET YOUR GOAL</h4><p>Weight, strength, or just showing up more — pick what actually matters to you.</p></div>
+      <div class="step step-2"><div class="num mono">02</div><h4>LOG AS YOU GO</h4><p>A workout, a meal, a missed day — log it in seconds so the picture stays honest.</p></div>
+      <div class="step step-3"><div class="num mono">03</div><h4>WATCH IT CLIMB</h4><p>See the exact moment effort turns into progress, charted in real time.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="pad on-light wrap showcase" id="trainers">
+  <div class="reveal">
+    <div class="trainer-card">
+      <div class="trainer-card__top">
+        <div class="trainer-avatar"></div>
+        <div><strong>Dana Whitfield</strong><span>Certified strength coach · 6 yrs</span></div>
+      </div>
+      <div class="trainer-tags"><span>Strength</span><span>Weight loss</span><span>Beginners welcome</span></div>
+      <div class="trainer-slot"><span>Thu, 6:00 PM · 45 min</span><a class="btn btn--lime" href="#">Book</a></div>
+    </div>
+  </div>
+  <div class="showcase__copy reveal">
+    <span class="eyebrow">Real coaching, in-app</span>
+    <h2 class="display" style="margin-top:10px;">NOT JUST<br>REMINDERS.</h2>
+    <p style="margin-top:14px; font-size:15.5px;">FitTrack Pro connects you with certified trainers who can see your actual progress — not just your last login.</p>
+    <div class="check-list">
+      <div class="check-item"><div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#8FCB00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><h4>Verified trainers</h4><p>Every coach is certified and reviewed before they're listed.</p></div></div>
+      <div class="check-item"><div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#8FCB00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><h4>Transparent pricing</h4><p>See the full price before you book — no surprise add-ons.</p></div></div>
+      <div class="check-item"><div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#8FCB00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><h4>Message before you book</h4><p>Ask a trainer a question first — no commitment required.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="pad on-light testimonial wrap">
+  <div class="testimonial__card reveal">
+    <p class="testimonial__quote">"I'd tried four apps before this one stuck. FitTrack Pro is the first one that actually showed me I was getting somewhere."</p>
+    <div class="testimonial__person"><strong>Jordan Reyes</strong> — lost 8kg in 4 months, beginner program</div>
+  </div>
+</section>
+
+<section class="cta on-dark wrap reveal">
+  <span class="eyebrow">Ready when you are</span>
+  <h2 class="display" style="margin-top:14px;">YOUR NEXT REP<br>STARTS HERE.</h2>
+  <p>Download FitTrack Pro and log your first workout in under a minute.</p>
+  <div class="cta__actions">
+    <a class="btn btn--lime" href="#">Get the app — free to start</a>
+    <a class="btn btn--outline-dark" href="#">Talk to a trainer first</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot__grid">
+      <div class="foot__brand">
+        <a class="logo" href="#top" style="color:var(--on-light);"><span class="dot"></span>FitTrack Pro</a>
+        <p>Every workout, meal, and session — one clear line of progress.</p>
+      </div>
+      <div class="foot__col"><h5>Product</h5><a href="#">Workout tracking</a><a href="#">Goals</a><a href="#">Trainers</a><a href="#">Pricing</a></div>
+      <div class="foot__col"><h5>Company</h5><a href="#">About</a><a href="#">Careers</a><a href="#">Press</a></div>
+      <div class="foot__col"><h5>Support</h5><a href="#">Help center</a><a href="#">Contact</a><a href="#">Status</a></div>
+    </div>
+    <div class="foot__bottom"><span>© 2026 FitTrack Pro</span><span><a href="#">Privacy</a> · <a href="#">Terms</a></span></div>
+  </div>
+</footer>
+
+<script>
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => nav.classList.toggle('is-scrolled', window.scrollY > 16));
+
+  const burger = document.getElementById('burger');
+  const drawer = document.getElementById('drawer');
+  burger.addEventListener('click', () => drawer.classList.toggle('is-open'));
+  drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', () => drawer.classList.remove('is-open')));
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  const countIo = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(!entry.isIntersecting) return;
+      const el = entry.target;
+      const to = parseFloat(el.dataset.countTo);
+      const decimals = parseInt(el.dataset.decimals || '0', 10);
+      const suffix = el.dataset.suffix || '';
+      const duration = 1100;
+      const start = performance.now();
+      function tick(now){
+        const p = Math.min((now-start)/duration, 1);
+        const eased = 1 - Math.pow(1-p, 3);
+        el.textContent = (to*eased).toFixed(decimals) + suffix;
+        if(p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+      countIo.unobserve(el);
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('[data-count-to]').forEach(el => countIo.observe(el));
+</script>
+</body>
+</html>
